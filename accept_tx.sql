@@ -1,15 +1,15 @@
 #include "gossip.h"
-
-create or replace function GSP.accept_tx(tx json) returns text as
+drop function if exists GSP.accept_tx(json);
+create or replace function GSP.accept_tx(jtx json) returns text as
 $code$
   declare
-    tx GSP.txs = row_to_json(null::GSP.tx,tx);
+    vtx GSP.txs = json_populate_record(null::GSP.txs,jtx);
   begin
-    if not GSP.self_ref()=any(tx.seenby) then
-      tx.seenby = tx.seenby||self_ref();
+    if not GSP.self_ref()=any(vtx.seenby) then
+      vtx.seenby = vtx.seenby||GSP.self_ref();
     end if;
-    insert into GSP.tx select tx on conflict 
-        do update set seenby=array(select distinct v from unnest(excluded.seenby));
+    insert into GSP.txs select vtx.* on conflict(tx)
+        do update set seenby=array(select distinct v from unnest(excluded.seenby) as u(v));
     return 'OK';
   end;
 $code$

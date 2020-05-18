@@ -6,7 +6,6 @@ create schema GSP;
 create table GSP.txs(
     tx text primary key,
     payload text not null,
-    is_self_seen_set boolean not null default false,
     seenby text[]
 );
 

@@ -31,7 +31,7 @@ create type GSP.blockchain_tx as(
 
 create table GSP.proposed_block(
  height bigint not null,
- hash bytea not null,
+ hash bytea not null unique,
  prev_hash bytea not null,
  miner_public_key bytea not null,
  signature bytea not null,

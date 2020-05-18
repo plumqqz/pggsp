@@ -1,3 +1,3 @@
-select gsp0.gossip();
-select gsp1.gossip();
-select gsp2.gossip();
+select gsp0.tx_gossip();
+select gsp1.tx_gossip();
+select gsp2.tx_gossip();

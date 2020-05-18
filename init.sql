@@ -15,4 +15,19 @@ declare
       using r.s2, r.s2, 'host=localhost dbname=work port=15432 user=postgres password=root';
   end loop;
  end;
-$code$
+$code$;
+
+do $code$
+declare
+ r record;
+ v bytea[];
+ pk bytea;
+ sk bytea;
+ begin
+     v=ecdsa_make_key_raw(CURVE);
+     pk=v[1];
+     sk=v[2];
+     raise notice 'SCHEMA=%', GSPSTR;
+     execute format('insert into %I.node_keys(pk,sk) values($1,$2) on conflict do nothing', GSPSTR) using pk, sk;
+ end;
+$code$;

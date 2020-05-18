@@ -5,11 +5,13 @@ $code$
   declare
     vtx GSP.mempool_txs = json_populate_record(null::GSP.mempool_txs,jtx);
   begin
+    assert jtx is not null, 'Passed tx json is null';
     if not GSP.is_valid_tx_signature(vtx) then
        raise sqlstate 'XY005' using message='Invalid signature';
-       return 'INVALID-SIGNATURE';
     end if;
-    if not GSP.self_ref()=any(vtx.seenby) then
+    if vtx.seenby is null then
+       vtx.seenby=array[GSP.self_ref()]::text[];
+    elsif not GSP.self_ref()=any(vtx.seenby) then
       vtx.seenby = vtx.seenby||GSP.self_ref();
     end if;
     insert into GSP.mempool_txs select vtx.* on conflict(tx)

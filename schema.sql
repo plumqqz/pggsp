@@ -8,8 +8,7 @@ create table GSP.mempool_txs(
     payload bytea not null,
     sender_public_key bytea,
     signature bytea,
-    seenby text[],
-    seenby_signatures bytea[]
+    seenby text[]
 );
 
 create table GSP.peer(
@@ -31,9 +30,41 @@ create type GSP.blockchain_tx as(
 ); 
 
 create table GSP.proposed_block(
- hash text,
- miner_public_key bytea,
- signature bytea,
- txs GSP.blockchain_tx[],
- voters bytea[]
+ height bigint not null,
+ tx bytea not null,
+ tx_prev bytea not null,
+ miner_public_key bytea not null,
+ signature bytea not null,
+ txs GSP.blockchain_tx[] not null,
+ voters bytea[] not null,
+ seenby text[] not null
 );
+
+create table GSP.blockchain(
+ height bigint not null check(height>0 or tx_prev is null) unique,
+ tx bytea not null unique,
+ tx_prev bytea not null,
+ miner_public_key bytea not null,
+ signature bytea not null,
+ txs GSP.blockchain_tx[] not null,
+ voters GSP.voter[] not null
+);
+
+create table GSP.node_keys(
+ id int primary key check(id=1) default(1),
+ pk bytea not null,
+ sk bytea not null
+);
+
+create or replace function GSP.get_node_pk() returns bytea as
+$code$
+select pk from GSP.node_keys;
+$code$
+language sql stable;
+
+create or replace function GSP.get_node_sk() returns bytea as
+$code$
+select sk from GSP.node_keys;
+$code$
+language sql stable;
+

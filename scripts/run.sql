@@ -1,8 +1,7 @@
 do $code$
 declare
- payload text:='call add_doc(1,2)';
+ payload text:='call add_doc(1,2) at '||now();
 begin
-    --insert into gsp0.txs(tx,payload,seenby)values(md5(payload),payload,array[]::text[]);
-    perform gsp0.accept_tx(to_json((md5(payload),payload,array[]::text[])::gsp0.txs));
+    perform gsp0.accept_tx(to_json((md5(payload||'/'||n),payload||'/'||n,array[]::text[])::gsp0.txs)) from generate_series(1,5000) as gs(n);
 end;
 $code$;

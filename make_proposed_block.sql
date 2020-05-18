@@ -16,12 +16,12 @@ declare
   if pb.tx is null then
      pb.tx=sha256('');
   end if;
-  select height, tx into pb.height, pb.tx_prev from GSP.blockchain order by height desc limit 1;
+  select height, hash into pb.height, pb.prev_hash from GSP.blockchain order by height desc limit 1;
   if not found then
     pb.height=0;
-    pb.tx_prev=''::bytea;
+    pb.prev_hash=''::bytea;
   end if;
-  pb.signature = ecdsa_sign_raw(GSP.get_node_sk(), sha256(pb.tx||pb.tx_prev), CURVE);
+  pb.signature = ecdsa_sign_raw(GSP.get_node_sk(), sha256(pb.tx||pb.prev_hash), CURVE);
   pb.miner_public_key=GSP.get_node_pk();
   pb.voters=array[]::GSP.voter[];
   pb.seenby=array[GSP.self_ref()];

@@ -4,7 +4,7 @@ drop schema if exists GSP cascade;
 create schema GSP;
 
 create table GSP.mempool_txs(
-    tx bytea primary key,
+    hash bytea primary key,
     payload bytea not null,
     sender_public_key bytea,
     signature bytea,
@@ -23,7 +23,7 @@ create table GSP.voter(
 );
 
 create type GSP.blockchain_tx as(
-    tx bytea,
+    hash bytea,
     payload bytea,
     sender_public_key bytea,
     signature bytea
@@ -31,8 +31,8 @@ create type GSP.blockchain_tx as(
 
 create table GSP.proposed_block(
  height bigint not null,
- tx bytea not null,
- tx_prev bytea not null,
+ hash bytea not null,
+ prev_hash bytea not null,
  miner_public_key bytea not null,
  signature bytea not null,
  txs GSP.blockchain_tx[] not null,
@@ -41,9 +41,9 @@ create table GSP.proposed_block(
 );
 
 create table GSP.blockchain(
- height bigint not null check(height>0 or tx_prev is null) unique,
- tx bytea not null unique,
- tx_prev bytea not null,
+ height bigint not null check(height>0 or prev_hash is null) unique,
+ hash bytea not null unique,
+ prev_hash bytea not null,
  miner_public_key bytea not null,
  signature bytea not null,
  txs GSP.blockchain_tx[] not null,

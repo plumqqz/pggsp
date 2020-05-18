@@ -15,7 +15,7 @@ begin
   
   for r in select n from generate_series(1,1000) as gs(n) loop
     tx.payload=format('call add_doc(%s,%L)', r.n, now())::bytea;
-    tx.tx=sha256(tx.payload);
+    tx.hash=sha256(tx.payload);
     tx.signature=GSP0.calculate_tx_signature(sk,tx.payload);
     tx.sender_public_key=pk;
     perform GSP0.accept_mempool_tx(to_json(tx));

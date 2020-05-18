@@ -20,7 +20,7 @@ declare
            if res<>'OK' then
               raise notice '%', format('Cannot send to %s:%s', r.ref, res);  
            end if;
-           update GSP.mempool_txs txs set seenby=array(select v from unnest(txs.seenby) as u(v) union select r.ref) where txs.tx=rd.tx;
+           update GSP.mempool_txs txs set seenby=array(select v from unnest(txs.seenby) as u(v) union select r.ref) where txs.hash=rd.hash;
       end loop;
       ok=true;
       exception

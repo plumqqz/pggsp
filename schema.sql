@@ -21,12 +21,18 @@ create table GSP.mempool_txs(
 create table GSP.peer(
  ref text primary key,
  schema_name text not null,
- cn text not null
+ cn text not null,
+ height bigint
 );
 
 create table GSP.voter(
  public_key bytea primary key,
  votes_cnt bigint not null check(votes_cnt>0) default 0
+);
+
+create type GSP.vote as(
+ public_key bytea,
+ signature bytea 
 );
 
 create type GSP.blockchain_tx as(
@@ -44,18 +50,18 @@ create table GSP.proposed_block(
  miner_public_key bytea not null,
  signature bytea not null,
  txs GSP.blockchain_tx[] not null,
- voters bytea[] not null,
+ voters GSP.vote[] not null,
  seenby text[] not null
 );
 
 create table GSP.blockchain(
- height bigint not null check(height>0 or prev_hash is null) unique,
+ height bigint not null check(height>0 or prev_hash=sha256('') and height=0) unique,
  hash bytea not null unique,
  prev_hash bytea not null,
  miner_public_key bytea not null,
  signature bytea not null,
  txs GSP.blockchain_tx[] not null,
- voters GSP.voter[] not null
+ voters GSP.vote[] not null
 );
 
 create table GSP.node_keys(

@@ -11,7 +11,7 @@ declare
   if pb.txs is null then
      pb.txs:=array[]::gsp0.blockchain_tx[];
   end if;
-  raise notice '%', to_json(pb.txs);
+
   hashes=array(select (u.tx).hash from unnest(pb.txs) as u(tx));
   CALCULATE_MERKLE_HASH(hashes, pb.hash);
   if pb.hash is null then
@@ -20,7 +20,7 @@ declare
   select height, hash into pb.height, pb.prev_hash from GSP.blockchain order by height desc limit 1;
   if not found then
     pb.height=0;
-    pb.prev_hash=''::bytea;
+    pb.prev_hash=sha256('');
   end if;
   pb.signature = ecdsa_sign_raw(GSP.get_node_sk(), sha256(pb.hash||pb.prev_hash), CURVE);
   pb.miner_public_key=GSP.get_node_pk();

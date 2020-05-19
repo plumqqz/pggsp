@@ -13,7 +13,7 @@ begin
         return false;
     end if;
     for r in select * from unnest(pb.txs) as u loop
-      if ecdsa_verify_raw(r.sender_public_key, p.payload, r.signature, CURVE) then
+      if ecdsa_verify_raw(r.sender_public_key, r.payload, r.signature, CURVE) then
         return false;
       end if;
     end loop;

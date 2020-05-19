@@ -18,6 +18,7 @@ begin
     tx.hash=sha256(tx.payload);
     tx.signature=GSP0.calculate_tx_signature(sk,tx.payload);
     tx.sender_public_key=pk;
+    tx.tx_type_id=0;
     perform GSP0.accept_mempool_tx(to_json(tx));
   end loop;
 end;

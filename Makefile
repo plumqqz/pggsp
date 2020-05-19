@@ -5,10 +5,10 @@ MARK_FILES = $(SQL_FILES:.sql=.mark)
 	SCHEMA=gsp1 ./load-script.sh $^
 	SCHEMA=gsp2 ./load-script.sh $^
 
-all: schema $(MARK_FILES) init
+all: schema.mark $(MARK_FILES) init.plpgsql.mark
 	@echo $^ >/dev/null
 
-init: init.sql
+init.plpgsql.mark: init.plpgsql
 	SCHEMA=gsp0 ./load-script.sh $^
 	SCHEMA=gsp1 ./load-script.sh $^
 	SCHEMA=gsp2 ./load-script.sh $^

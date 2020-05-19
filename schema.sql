@@ -13,6 +13,7 @@ create table GSP.mempool_txs(
     tx_type_id smallint not null default(0) references GSP.tx_type(id),
     payload bytea not null,
     sender_public_key bytea,
+    added_at timestamptz default(clock_timestamp()),
     signature bytea,
     seenby text[]
 );
@@ -25,11 +26,12 @@ create table GSP.peer(
 
 create table GSP.voter(
  public_key bytea primary key,
- votes_cnt int not null check(votes_cnt>0) default 0
+ votes_cnt bigint not null check(votes_cnt>0) default 0
 );
 
 create type GSP.blockchain_tx as(
     hash bytea,
+    tx_type_id smallint,
     payload bytea,
     sender_public_key bytea,
     signature bytea
@@ -87,7 +89,7 @@ create or replace function GSP.int_increase_limit(pk bytea, lim bigint) returns 
 $code$
 begin
   insert into GSP.account(public_key, balance) values(pk, lim) 
-    on conflict(public_key) do update set balance=excluded.balance+excluded.balance;
+    on conflict(public_key) do update set balance=excluded.balance+lim;
 end;
 $code$
 language plpgsql;
@@ -118,6 +120,30 @@ create or replace function GSP.int_remove_magic_key(pk bytea) returns void as
 $code$
 begin
   delete from GSP.magic_key where public_key=pk;
+end;
+$code$
+language plpgsql;
+
+#votes
+create or replace function GSP.int_increase_votes(pk bytea, lim bigint) returns void as
+$code$
+begin
+  insert into GSP.voter(public_key, votes_cnt) values(pk, lim) 
+    on conflict(public_key) do update set votes_cnt=excluded.votes_cnt+lim;
+end;
+$code$
+language plpgsql;
+
+create or replace function GSP.int_decrease_votes(pk bytea, lim bigint) returns void as
+$code$
+declare
+ rv bigint;
+begin
+   update GSP.voter set votes_cnt=greatest(votes_cnt-lim,0) where public_key=pk
+     returning votes_cnt into rv;
+   if rv=0 then
+     delete from GSP.voter where public_key=pk;
+   end if;
 end;
 $code$
 language plpgsql;

@@ -7,7 +7,7 @@ declare
  hashes bytea[];
  merkle_hash bytea;
  begin
-  select array_agg((hash,payload,sender_public_key,signature)::gsp0.blockchain_tx) into pb.txs from (select * from GSP0.mempool_txs limit 1000) mp;
+  select array_agg((hash,0,payload,sender_public_key,signature)::gsp0.blockchain_tx) into pb.txs from (select * from GSP.mempool_txs order by added_at, sender_public_key limit 1000) mp;
   if pb.txs is null then
      pb.txs:=array[]::gsp0.blockchain_tx[];
   end if;

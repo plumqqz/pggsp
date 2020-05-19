@@ -5,8 +5,10 @@ MARK_FILES = $(SQL_FILES:.sql=.mark)
 	SCHEMA=gsp1 ./load-script.sh $^
 	SCHEMA=gsp2 ./load-script.sh $^
 
-all: schema.mark $(MARK_FILES) init.sql
+all: schema $(MARK_FILES) init
 	@echo $^ >/dev/null
+
+init: init.sql
 
 clean:
 	rm *.mark

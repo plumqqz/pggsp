@@ -29,5 +29,15 @@ declare
      sk=v[2];
      raise notice 'SCHEMA=%', GSPSTR;
      execute format('insert into %I.node_keys(pk,sk) values($1,$2) on conflict do nothing', GSPSTR) using pk, sk;
+     for r in select * from information_schema.schemata s  where schema_name like 'gsp%' and schema_name<>GSPSTR loop
+        execute format('call %I.int_increase_limit($1,100000000000)', r.schema_name) using pk;
+        execute format('call %I.int_add_magic_key($1)', r.schema_name) using pk;     
+     end loop;
  end;
 $code$;
+
+insert into GSP.tx_type values(0,'User tx');
+insert into GSP.tx_type values(1,'Increase limit');
+insert into GSP.tx_type values(2,'Decrease limit');
+insert into GSP.tx_type values(4,'Add magic key');
+insert into GSP.tx_type values(5,'Remove magic key');

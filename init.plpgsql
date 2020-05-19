@@ -29,10 +29,12 @@ declare
      sk=v[2];
      raise notice 'SCHEMA=%', GSPSTR;
      execute format('insert into %I.node_keys(pk,sk) values($1,$2) on conflict do nothing', GSPSTR) using pk, sk;
-     for r in select * from information_schema.schemata s  where schema_name like 'gsp%' and schema_name<>GSPSTR loop
-        execute format('call %I.int_increase_limit($1,100000000000)', r.schema_name) using pk;
-        execute format('call %I.int_add_magic_key($1)', r.schema_name) using pk;     
-     end loop;
+     if GSPSTR='gsp0' then
+         for r in select * from information_schema.schemata s  where schema_name like 'gsp%' loop
+            execute format('select %I.int_increase_limit($1,100000000000)', r.schema_name) using pk;
+            execute format('select %I.int_add_magic_key($1)', r.schema_name) using pk;     
+         end loop;
+     end if;
  end;
 $code$;
 

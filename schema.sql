@@ -86,8 +86,8 @@ language sql stable;
 create or replace function GSP.int_increase_limit(pk bytea, lim bigint) returns void as
 $code$
 begin
-  insert into GSP.account(pubic_key, balance) values(pk, lim) 
-    on conflict(public_key) do update set balance=balance+excluded.balance;
+  insert into GSP.account(public_key, balance) values(pk, lim) 
+    on conflict(public_key) do update set balance=excluded.balance+excluded.balance;
 end;
 $code$
 language plpgsql;

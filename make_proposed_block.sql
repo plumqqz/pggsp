@@ -20,7 +20,7 @@ declare
   if pb.hash is null then
      pb.hash=sha256('');
   end if;
-  select height, hash into pb.height, pb.prev_hash from GSP.blockchain order by height desc limit 1;
+  select height+1, hash into pb.height, pb.prev_hash from GSP.blockchain order by height desc limit 1;
   if not found then
     pb.height=0;
     pb.prev_hash=sha256('\x'::bytea);
@@ -31,7 +31,7 @@ declare
   pb.seenby=array[GSP.self_ref()];
   pb.created_at=clock_timestamp();
   pb.added_at=clock_timestamp();
-  insert into GSP.proposed_block select pb.*;
+  insert into GSP.proposed_block select pb.* on conflict do nothing;
  end;
 $code$
 language plpgsql

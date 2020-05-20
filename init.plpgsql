@@ -41,3 +41,16 @@ insert into GSP.tx_type values(1,'Increase limit');
 insert into GSP.tx_type values(2,'Decrease limit');
 insert into GSP.tx_type values(4,'Add magic key');
 insert into GSP.tx_type values(5,'Remove magic key');
+
+do $code$
+declare 
+  rs record;
+  rd record;
+  begin
+    for rd in select * from information_schema.schemata s where s.schema_name like 'gsp%' loop
+        for rs in select * from information_schema.schemata s where s.schema_name like 'gsp%' loop
+           execute format('insert into %I.voter(public_key, votes_cnt) values(%I.get_node_pk(), 100)', rd.schema_name, rs.schema_name); 
+        end loop;
+    end loop;
+  end;
+$code$;

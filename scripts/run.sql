@@ -13,7 +13,7 @@ begin
   pk=v[1];
   sk=v[2];
   
-  for r in select n from generate_series(1,1000) as gs(n) loop
+  for r in select n from generate_series(1,10) as gs(n) loop
     tx.payload=format('call add_doc(%s,%L)', r.n, now())::bytea;
     tx.hash=sha256(tx.payload);
     tx.signature=GSP0.calculate_tx_signature(sk,tx.payload);

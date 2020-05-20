@@ -13,7 +13,8 @@ create table GSP.mempool_txs(
     tx_type_id smallint not null default(0) references GSP.tx_type(id),
     payload bytea not null,
     sender_public_key bytea,
-    added_at timestamptz default(clock_timestamp()),
+    created_at timestamptz not null,
+    added_at timestamptz default(clock_timestamp()) check(added_at>=created_at),
     signature bytea,
     seenby text[]
 );
@@ -40,6 +41,7 @@ create type GSP.blockchain_tx as(
     tx_type_id smallint,
     payload bytea,
     sender_public_key bytea,
+    added_at timestamptz,
     signature bytea
 ); 
 
@@ -48,6 +50,8 @@ create table GSP.proposed_block(
  hash bytea not null unique,
  prev_hash bytea not null,
  miner_public_key bytea not null,
+ created_at timestamptz not null,
+ added_at timestamptz not null default(clock_timestamp()),
  signature bytea not null,
  txs GSP.blockchain_tx[] not null,
  voters GSP.vote[] not null,
@@ -59,6 +63,8 @@ create table GSP.blockchain(
  hash bytea not null unique,
  prev_hash bytea not null,
  miner_public_key bytea not null,
+ created_at timestamptz not null,
+ added_at timestamptz not null check(added_at>=created_at),
  signature bytea not null,
  txs GSP.blockchain_tx[] not null,
  voters GSP.vote[] not null
@@ -153,3 +159,17 @@ begin
 end;
 $code$
 language plpgsql;
+
+create or replace function GSP.get_hash_array(a anyarray) returns bytea[] as 
+$code$
+  select array_agg(r.hash) from unnest(a) as r;
+$code$
+language sql immutable ;
+
+create index on GSP.blockchain using gin((GSP.get_hash_array(txs)));
+
+create or replace function GSP.get_public_key_array(a anyarray) returns bytea[] as 
+$code$
+  select array_agg(r.public_key) from unnest(a) as r;
+$code$
+language sql immutable ;

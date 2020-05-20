@@ -14,13 +14,21 @@ begin
         return;
     end if;
     select max(height) into mh from GSP.blockchain;
-    select peer into p from GSP.peer order by height desc limit 1;
-    CREATE_DBLINK(p.cn);
+    select * into p from GSP.peer order by height desc nulls last limit 1;
+    if not found then
+      raise sqlstate 'XY011' using message='No peers found';
+    end if;
 
-    for i in mh+1..p.height loop
+    if p.height is null then
+      return;
+    end if;
+
+    CREATE_DBLINK(p.cn);
+    for i in coalesce(mh,-1)+1..p.height loop
         select dbl.res into reply from dblink(get_connection_name(p.cn), format('select %I.reply_blockchain_block(%L)',p.schema_name,i)) as dbl(res json);
         bb:=json_populate_record(null::GSP.blockchain, reply);
-        perform GSP.accept_proposed_block_to_blockchain(bb);
+        perform GSP.accept_proposed_block(reply);
+        perform GSP.append_proposed_block_to_blockchain(decode(substring(reply->>'hash' from 3), 'hex'));
     end loop;
 end;
 $code$

@@ -8,7 +8,7 @@ declare
  signature bytea;
  r record;
 begin
-    CALCULATE_MERKLE_HASH(hashes, merkle);
+    merkle = GSP.calculate_merkle_hash(hashes);
     if pb.prev_hash!=(select hash from GSP.blockchain bc where bc.height=pb.height-1) and pb.height>0 then
         return false;
     end if;

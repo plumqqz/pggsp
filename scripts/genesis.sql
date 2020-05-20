@@ -13,6 +13,7 @@ begin
  tx.tx_type_id=0;
  perform GSP0.accept_mempool_tx(to_json(tx));
  perform gsp0.make_proposed_block();
-end;
- 
-$code$
+ perform gsp0.append_proposed_block_to_blockchain((select hash from gsp0.proposed_block));
+end; 
+$code$;
+

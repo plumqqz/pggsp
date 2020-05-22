@@ -29,6 +29,16 @@ begin
       raise sqlstate 'XY015' using message='No voters has been found';
   end if;
   
+  -- проверяем, есть ли вообще за что голосовать - если каждый увидит только свой
+  -- блок и проголосует за него, то голосование может остановиться
+  if (select sum(v.votes_cnt)*1.0000/total_votes_cnt
+              from GSP.proposed_block p
+                   join GSP.voter v on p.miner_public_key=v.public_key)<0.6 then
+     -- мало блоков от майнеров, надо ждать еще кандидатов
+     raise notice 'Too low voter nodes send next tx candidates';
+     return;
+   end if;
+  
   voted_block_found = false;
   for r in select p.hash
               from GSP.proposed_block p, 
@@ -44,27 +54,27 @@ begin
   -- такого не может, так что тут все свалится
      perform GSP.append_proposed_block_to_blockchain(r.hash);
      voted_block_found=true;
-  end loop;
-  
-  if voted_block_found then
-     return;
-  end if;
-  
-  -- проверяем, не голосовали ли уже за этот блок
+  end loop;  
+
+    -- проверяем, не голосовали ли уже за этот блок
   if exists(select * from GSP.proposed_block pb
    where pb.height=mh+1
      and array[GSP.get_node_pk()] && GSP.get_public_key_array(pb.voters))
   then
     return;
   end if;  
-  
+
+  if voted_block_found then
+     return;
+  end if;
+
   select pb.* into pbr from GSP.proposed_block pb, GSP.voter v
   where pb.miner_public_key=v.public_key 
     and pb.height=mh+1
     order by v.votes_cnt desc, v.public_key
     limit 1;
-  raise notice '%', pbr;
-  if not found then
+
+    if not found then
     return;
   end if;
   signature = ecdsa_sign_raw(GSP.get_node_sk(), pbr.hash, CURVE);

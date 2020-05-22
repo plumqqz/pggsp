@@ -17,7 +17,7 @@ begin
         return false;
       end if;
     end loop;
-    return ecdsa_verify_raw(pb.miner_public_key, sha256(merkle||pb.prev_hash), pb.signature, CURVE);
+    return ecdsa_verify_raw(pb.miner_public_key, sha256(sha256(merkle||pb.miner_public_key)||pb.prev_hash), pb.signature, CURVE);
 end;
 $code$
 language plpgsql;

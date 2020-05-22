@@ -1,6 +1,6 @@
 #include "gossip.h"
 
-create or replace function GSP.tx_gossip() returns void as
+create or replace function GSP.tx_gossip_one(peer_ref text) returns void as
 $code$
 declare
  r record;
@@ -10,7 +10,7 @@ declare
  sqlst text;
  res text;
  begin
-     for r in select * from GSP.peer loop
+     for r in select * from GSP.peer where peer.ref=peer_ref loop
       CREATE_DBLINK(r.cn);
       begin
       perform dblink_exec(get_connection_name(r.cn),'begin');
@@ -40,3 +40,9 @@ declare
  end
 $code$
 language plpgsql;
+
+create or replace function GSP.tx_gossip() returns void as
+$code$
+  select GSP.tx_gossip_one(ref) from GSP.peer;
+$code$
+language sql;

@@ -21,7 +21,7 @@ $code$
       pb.seenby = pb.seenby||GSP.self_ref();
     end if;
     insert into GSP.proposed_block select pb.* on conflict(hash)
-        do update set seenby=array(select v from unnest(excluded.seenby) as u(v) union select v from unnest(pb.seenby) u(v)),
+        do update set seenby=array(select v from unnest(excluded.seenby) as u(v) union select GSP.self_ref()),
                       voters=array(select v from unnest(proposed_block.voters) v union select v from unnest(excluded.voters) v);
     return 'OK';
   end;

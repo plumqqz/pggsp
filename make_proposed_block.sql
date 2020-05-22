@@ -5,8 +5,11 @@ $code$
 declare
  pb GSP.proposed_block;
  hashes bytea[];
- merkle_hash bytea;
- begin
+begin
+ if exists(select * from GSP.proposed_block ppb where ppb.height=(select max(bc.height)+1 from GSP.blockchain bc)) then
+   -- previous block has not been appended
+   return;
+ end if;
   select array_agg((hash,0,payload,sender_public_key,added_at,signature)::gsp0.blockchain_tx) into pb.txs from (select * from GSP.mempool_txs order by added_at, sender_public_key limit 1000) mp;
 
   if array_length(pb.txs,1)=0 then
@@ -15,7 +18,8 @@ declare
 
   hashes=array(select (u.tx).hash from unnest(pb.txs) as u(tx));
 
-  pb.hash = GSP.calculate_merkle_hash(hashes);
+  pb.miner_public_key=GSP.get_node_pk();
+  pb.hash = sha256(GSP.calculate_merkle_hash(hashes)||pb.miner_public_key);
 
   if pb.hash is null then
      pb.hash=sha256('');
@@ -26,7 +30,6 @@ declare
     pb.prev_hash=sha256('\x'::bytea);
   end if;
   pb.signature = ecdsa_sign_raw(GSP.get_node_sk(), sha256(pb.hash||pb.prev_hash), CURVE);
-  pb.miner_public_key=GSP.get_node_pk();
   pb.voters=array[]::GSP.voter[];
   pb.seenby=array[GSP.self_ref()];
   pb.created_at=clock_timestamp();

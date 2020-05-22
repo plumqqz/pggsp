@@ -18,14 +18,14 @@ begin
              from unnest(b.txs) t 
             where exists(select * 
                            from GSP.blockchain bc 
-                          where array[t.hash] <@ GSP.get_hash_array(bc.txs))) 
+                          where array[t.hash] && GSP.get_hash_array(bc.txs))) 
  then
    raise sqlstate 'XY012' using message=format('Proposed block has transactions are already with hash=%s', bh::text);
  end if;
 
  
  delete from GSP.mempool_txs where hash in(select hash from unnest(b.txs) t);
- delete from GSP.proposed_block where hash=b.hash;
+ delete from GSP.proposed_block where height=b.height;
  
  insert into GSP.blockchain(height, hash, prev_hash,
                             miner_public_key, signature, created_at,

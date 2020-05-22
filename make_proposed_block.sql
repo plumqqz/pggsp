@@ -6,15 +6,19 @@ declare
  pb GSP.proposed_block;
  hashes bytea[];
 begin
- if exists(select * from GSP.proposed_block ppb where ppb.height=(select max(bc.height)+1 from GSP.blockchain bc)) then
+ if exists(select * 
+             from GSP.proposed_block ppb 
+            where ppb.height=(select max(bc.height)+1 from GSP.blockchain bc) 
+              and ppb.miner_public_key=GSP.get_node_pk()) then
    -- previous block has not been appended
    return;
  end if;
   select array_agg((hash,0,payload,sender_public_key,added_at,signature)::gsp0.blockchain_tx) into pb.txs from (select * from GSP.mempool_txs order by added_at, sender_public_key limit 1000) mp;
-
-  if array_length(pb.txs,1)=0 then
-     pb.txs:=array[]::gsp0.blockchain_tx[];
+  if pb.txs is null or array_length(pb.txs,1)=0 then -- no tx found
+     raise notice 'No tx found';
+     return;
   end if;
+
 
   hashes=array(select (u.tx).hash from unnest(pb.txs) as u(tx));
 

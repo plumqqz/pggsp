@@ -61,7 +61,7 @@ begin
   pk=v[1];
   sk=v[2];
   
-  for r in select n from generate_series(1,2000) as gs(n) loop
+  for r in select n from generate_series(1,20) as gs(n) loop
     tx.payload=format('{"action":"add_doc","param":{"doc_id":%s,"content":"Allow user to do something","created_at":"%s"}}', r.n, now())::bytea;
     tx.hash=sha256(tx.payload);
     tx.signature=GSP0.calculate_tx_signature(sk,tx.payload);

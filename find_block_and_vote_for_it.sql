@@ -74,14 +74,14 @@ begin
     order by v.votes_cnt desc, v.public_key
     limit 1;
 
-    if not found then
+  if not found then
     return;
   end if;
   signature = ecdsa_sign_raw(GSP.get_node_sk(), pbr.hash, CURVE);
   
   update GSP.proposed_block pb set
-    voters=voters||(GSP.get_node_pk(), code.signature)::GSP.vote,
-    seenby=array[]::text[]
+    seenby=case when array_length(voters,1) is null then array[GSP.self_ref()]::text[] else array(select v from unnest(seenby) v union select GSP.self_ref()) end,    
+    voters=voters||(GSP.get_node_pk(), code.signature)::GSP.vote
    where pb.hash=pbr.hash;
   
   

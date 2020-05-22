@@ -15,7 +15,7 @@ declare
       begin
       perform dblink_exec(get_connection_name(r.cn),'begin');
       ok=false;
-      for rd in select * from GSP.proposed_block pbs /*where not r.ref=any(pbs.seenby)*/ loop
+      for rd in select * from GSP.proposed_block pbs where not r.ref=any(pbs.seenby) loop
            select dbl.res into res from dblink(get_connection_name(r.cn), format('select %I.accept_proposed_block(%L)',r.schema_name, to_json(rd))) as dbl(res text);
            if res<>'OK' then
               raise notice '%', format('Cannot send to %s:%s', r.ref, res);

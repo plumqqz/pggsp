@@ -14,16 +14,16 @@ declare
       CREATE_DBLINK(r.cn);
       begin
       perform dblink_exec(get_connection_name(r.cn),'begin');
-      ok=false;
-      for rd in select * from GSP.proposed_block pbs where not r.ref=any(pbs.seenby) loop
-           select dbl.res into res from dblink(get_connection_name(r.cn), format('select %I.accept_proposed_block(%L)',r.schema_name, to_json(rd))) as dbl(res text);
-           if res<>'OK' then
-              raise notice '%', format('Cannot send to %s:%s', r.ref, res);
-              continue;
-           end if;
-           update GSP.proposed_block pbs set seenby=array(select v from unnest(pbs.seenby) as u(v) union select r.ref) where pbs.hash=rd.hash;
-      end loop;
-      ok=true;
+          ok=false;
+          for rd in select * from GSP.proposed_block pbs where not r.ref=any(pbs.seenby) loop
+               select dbl.res into res from dblink(get_connection_name(r.cn), format('select %I.accept_proposed_block(%L)',r.schema_name, to_json(rd))) as dbl(res text);
+               if res<>'OK' then
+                  raise notice '%', format('Cannot send to %s:%s', r.ref, res);
+                  continue;
+               end if;
+               update GSP.proposed_block pbs set seenby=array(select v from unnest(pbs.seenby) as u(v) union select r.ref) where pbs.hash=rd.hash;
+          end loop;
+          ok=true;
       exception
         when others then 
             ok=false;

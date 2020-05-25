@@ -17,6 +17,15 @@ $code$
     if vtx.created_at is null then
       vtx.created_at=now();
     end if;
+    if vtx.added_at is null then
+       vtx.added_at = clock_timestamp();
+    end if;
+
+    if vtx.hash<>GSP.build_tx_hash(vtx) then
+      raise notice 'passed hash=%', vtx.hash;
+      raise notice 'calculated hash=%', int2bytea(extract(epoch from vtx.created_at)::int)||sha256(vtx.sender_public_key||vtx.payload);
+      raise sqlstate 'XY020' using message='Tx hash is invalid';
+    end if;
     insert into GSP.mempool_txs select vtx.* on conflict(hash)
         do update set seenby=array(select v from unnest(excluded.seenby) as u(v) union select v from unnest(mempool_txs.seenby) u(v));
     return 'OK';

@@ -20,10 +20,11 @@ begin
   end if;
 
 
-  hashes=array(select (u.tx).hash from unnest(pb.txs) as u(tx));
+  hashes=array(select u.tx from unnest(pb.txs) as u(tx));
 
   pb.miner_public_key=GSP.get_node_pk();
-  pb.hash = sha256(GSP.calculate_merkle_hash(hashes)||pb.miner_public_key);
+  pb.created_at=clock_timestamp();
+  pb.hash = GSP.int2bytea(extract(epoch from pb.created_at)::int)||sha256(GSP.calculate_merkle_hash(hashes)||pb.miner_public_key);
 
   if pb.hash is null then
      pb.hash=sha256('');
@@ -36,7 +37,6 @@ begin
   pb.signature = ecdsa_sign_raw(GSP.get_node_sk(), sha256(pb.hash||pb.prev_hash), CURVE);
   pb.voters=array[]::GSP.voter[];
   pb.seenby=array[GSP.self_ref()];
-  pb.created_at=clock_timestamp();
   pb.added_at=clock_timestamp();
   insert into GSP.proposed_block select pb.* on conflict do nothing;
  end;

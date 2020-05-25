@@ -23,7 +23,8 @@ create table GSP.peer(
  ref text primary key,
  schema_name text not null,
  cn text not null,
- height bigint
+ height bigint,
+ last_accessed_at timestamptz
 );
 
 create table GSP.voter(

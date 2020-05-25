@@ -13,7 +13,7 @@ begin
   pk=v[1];
   sk=v[2];
   
-  for r in select n from generate_series(1,200) as gs(n) loop
+  for r in select n from generate_series(1,2000) as gs(n) loop
     tx.payload=format('{"action":"add_doc","param":{"doc_id":%s,"content":"Allow user to do something","created_at":"%s"}}', r.n, now())::bytea;
     tx.created_at = clock_timestamp();
     tx.sender_public_key=pk;
@@ -27,7 +27,7 @@ begin
   pk=v[1];
   sk=v[2];
   
-  for r in select n from generate_series(1,200) as gs(n) loop
+  for r in select n from generate_series(1,2000) as gs(n) loop
     tx.payload=format('{"action":"add_doc","param":{"doc_id":%s,"content":"Allow user to do something","created_at":"%s"}}', r.n, now())::bytea;
     tx.created_at = clock_timestamp();
     tx.sender_public_key=pk;
@@ -41,7 +41,7 @@ begin
   pk=v[1];
   sk=v[2];
   
-  for r in select n from generate_series(1,200) as gs(n) loop
+  for r in select n from generate_series(1,2000) as gs(n) loop
     tx.payload=format('{"action":"add_doc","param":{"doc_id":%s,"content":"Allow user to do something","created_at":"%s"}}', r.n, now())::bytea;
     tx.created_at = clock_timestamp();
     tx.sender_public_key=pk;

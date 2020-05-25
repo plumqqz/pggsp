@@ -8,7 +8,7 @@ declare
  begin
    CREATE_DBLINK(p.cn);
    select dbl.res into hh from dblink(get_connection_name(p.cn), format('select %I.reply_blockchain_height()',p.schema_name)) as dbl(res bigint);
-   update GSP.peer set height=hh where peer.ref=ask_peer_height.ref;
+   update GSP.peer set height=hh, last_accessed_at=clock_timestamp() where peer.ref=ask_peer_height.ref;
  end;
 $code$
 language plpgsql;

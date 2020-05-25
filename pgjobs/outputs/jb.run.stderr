@@ -1,0 +1,7 @@
+Apr 21 19:06:01 FATAL:  terminating connection due to administrator command
+Apr 21 19:06:01 CONTEXT:  SQL statement "SELECT pg_sleep(1)"
+Apr 21 19:06:01 PL/pgSQL function jb.run() line 18 at PERFORM
+Apr 21 19:06:01 server closed the connection unexpectedly
+Apr 21 19:06:01 	This probably means the server terminated abnormally
+Apr 21 19:06:01 	before or while processing the request.
+Apr 21 19:06:01 connection to server was lost

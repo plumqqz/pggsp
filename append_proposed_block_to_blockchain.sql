@@ -25,7 +25,7 @@ begin
 
  
  delete from GSP.mempool_txs where hash in(select hash from unnest(b.txs) t);
- delete from GSP.proposed_block where height=b.height;
+ delete from GSP.proposed_block where height<=b.height;
  
  insert into GSP.blockchain(height, hash, prev_hash,
                             miner_public_key, signature, created_at,

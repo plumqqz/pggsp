@@ -13,7 +13,7 @@ begin
    -- previous block has not been appended
    return;
  end if;
-  select array_agg((hash,0,payload,sender_public_key,added_at,signature)::gsp0.blockchain_tx) into pb.txs from (select * from GSP.mempool_txs order by added_at, sender_public_key limit 1000) mp;
+  select array_agg((hash,0,payload,sender_public_key,added_at,signature)::gsp0.blockchain_tx) into pb.txs from (select * from GSP.mempool_txs order by added_at, sender_public_key limit 300) mp;
   if pb.txs is null or array_length(pb.txs,1)=0 then -- no tx found
      raise notice 'No tx found';
      return;

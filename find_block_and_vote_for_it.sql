@@ -40,13 +40,13 @@ begin
    end if;
   
   voted_block_found = false;
-  for r in select p.hash
+  for r in select p.hash, p.height
               from GSP.proposed_block p, 
                    unnest(p.voters) as vt
                    join GSP.voter v on vt.public_key=v.public_key
               where ecdsa_verify_raw(v.public_key, p.hash, vt.signature, CURVE)
               and p.height=mh+1
-             group by 1
+             group by 1,2
              having sum(v.votes_cnt) >= total_votes_cnt*0.6600
   loop
   -- если вдруг у нас окажется два блока одинаковой высоты с 
@@ -56,6 +56,10 @@ begin
      voted_block_found=true;
   end loop;  
 
+  if voted_block_found then
+     return;
+  end if;
+
     -- проверяем, не голосовали ли уже за этот блок
   if exists(select * from GSP.proposed_block pb
    where pb.height=mh+1
@@ -63,10 +67,6 @@ begin
   then
     return;
   end if;  
-
-  if voted_block_found then
-     return;
-  end if;
 
   select pb.* into pbr from GSP.proposed_block pb, GSP.voter v
   where pb.miner_public_key=v.public_key 
@@ -79,7 +79,6 @@ begin
   end if;
   signature = ecdsa_sign_raw(GSP.get_node_sk(), pbr.hash, CURVE);
   
-  perform pg_advisory_xact_lock(pbr.height);
   update GSP.proposed_block pb set
     seenby=case when array_length(voters,1) is null then array[GSP.self_ref()]::text[] else array(select v from unnest(seenby) v union select GSP.self_ref()) end,    
     voters=array(select v from unnest(voters) as v union select (GSP.get_node_pk(), code.signature)::GSP.vote)

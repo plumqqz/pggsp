@@ -24,5 +24,6 @@
 #define CREATE_DBLINK(connection_string)\
    if not get_connection_name(connection_string)=any(coalesce(dblink_get_connections(),array[]::text[])) then\
      perform dblink_connect(get_connection_name(connection_string), connection_string || ' application_name=' || trim($s$ BCW $s$) || '.send_mempool_to_peer');\
+     perform dblink_exec(get_connection_name(connection_string),'set statement_timeout to 10000');\
    end if
 

@@ -22,7 +22,7 @@ $code$
     end if;
     
     if exists(select * from GSP.blockchain bc where array[vtx.hash] && GSP.get_hash_array(bc.txs)) then
-       raise notice 'Tx % already in blockchain, skip it', decode(vtx.hash,'hex');
+       raise notice 'Tx % already in blockchain, skip it', encode(vtx.hash,'hex');
     end if;
 
     if vtx.hash<>GSP.build_tx_hash(vtx) then

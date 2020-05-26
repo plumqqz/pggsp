@@ -7,6 +7,8 @@ declare
  r record;
 begin
  assert b is not null, format('Cannot find proposed block with hash=%s', bh::text);
+ perform pg_advisory_xact_lock(b.height);
+
  if not GSP.is_valid_proposed_block_signature(b) then
    raise sqlstate 'XY006' using message=format('Cannot validate proposed block with hash=%s', bh::text);
  end if;

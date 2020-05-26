@@ -24,7 +24,6 @@ $code$
     elsif not GSP.self_ref()=any(pb.seenby) then
       pb.seenby = pb.seenby||GSP.self_ref();
     end if;
-    perform pg_advisory_xact_lock(pb.height);
     insert into GSP.proposed_block select pb.* on conflict(hash)
         do update set seenby=case when array_length(proposed_block.voters,1) is null then array(select v from unnest(excluded.seenby) as u(v) union select GSP.self_ref()) else array[GSP.self_ref()] end,
                       voters=array(select v from unnest(proposed_block.voters) v union select v from unnest(excluded.voters) v);

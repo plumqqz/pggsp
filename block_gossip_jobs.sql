@@ -14,7 +14,7 @@ declare
        perform jb.submit(GSPSTR||'.block_gossip_job', jsonb_build_object('ref', r.ref));
      end if;
    end loop;
-   perform jb.set_next_run_after(jid, make_interval(secs:=30));
+   perform jb.set_next_run_after(jid, make_interval(secs:=3));
  end;
 $code$
 language plpgsql;

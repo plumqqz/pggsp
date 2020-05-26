@@ -20,7 +20,7 @@ begin
   if not found then
       raise sqlstate 'XY014' using message='Blockchain is empty';
   end if;
-  if not found or clock_timestamp()-mts<make_interval(secs:=30) then
+  if not found or clock_timestamp()-mts<make_interval(secs:=10) then
     return;
   end if;
       
@@ -79,10 +79,11 @@ begin
   end if;
   signature = ecdsa_sign_raw(GSP.get_node_sk(), pbr.hash, CURVE);
   
+  perform pg_advisory_xact_lock(pbr.height);
   update GSP.proposed_block pb set
     seenby=case when array_length(voters,1) is null then array[GSP.self_ref()]::text[] else array(select v from unnest(seenby) v union select GSP.self_ref()) end,    
-    voters=voters||(GSP.get_node_pk(), code.signature)::GSP.vote
-   where pb.hash=pbr.hash;
+    voters=array(select v from unnest(voters) as v union select (GSP.get_node_pk(), code.signature)::GSP.vote)
+   where pb.hash=pbr.hash and not exists(select * from unnest(pb.voters) v where v.public_key=GSP.get_node_pk());
   
   
 end;

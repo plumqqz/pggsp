@@ -4,7 +4,7 @@ create or replace function GSP.make_proposed_block_jobs(jid bigint) returns void
 $code$
  begin
    perform GSP.make_proposed_block();
-   perform jb.set_next_run_after(jid, make_interval(secs:=20));
+   perform jb.set_next_run_after(jid, make_interval(secs:=5));
 end;
 $code$
 language plpgsql;

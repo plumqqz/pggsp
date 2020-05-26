@@ -18,6 +18,7 @@ create table GSP.mempool_txs(
     signature bytea,
     seenby text[]
 );
+create index on GSP.mempool_txs(added_at, sender_public_key);
 
 create table GSP.peer(
  ref text primary key,

@@ -6,7 +6,7 @@ $code$
    begin
         perform GSP.find_block_and_vote_for_it();
    end; 
-   perform jb.set_next_run_after(jid, make_interval(secs:=20));
+   perform jb.set_next_run_after(jid, make_interval(secs:=2));
 end;
 $code$
 language plpgsql;

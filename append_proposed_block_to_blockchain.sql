@@ -11,7 +11,7 @@ begin
    raise sqlstate 'XY006' using message=format('Cannot validate proposed block with hash=%s', bh::text);
  end if;
  if b.height>0 and not GSP.is_enough_votes(b.voters)then
-   raise sqlstate 'XY010' using message=format('There is not enough votes for proposed block with hash=%s', bh::text);
+   raise notice '%', format('There is not enough votes for proposed block with hash=%s', bh::text);
  end if;
  
  if exists(select * 
@@ -20,7 +20,7 @@ begin
                            from GSP.blockchain bc 
                           where array[t.hash] && GSP.get_hash_array(bc.txs))) 
  then
-   raise sqlstate 'XY012' using message=format('Proposed block has transactions are already with hash=%s', bh::text);
+   raise notice '%', format('Proposed block has transactions are already with hash=%s', bh::text);
  end if;
 
  
@@ -32,8 +32,10 @@ begin
                             added_at, txs, voters)
                          values(b.height, b.hash, b.prev_hash,
                                 b.miner_public_key, b.signature, b.created_at, 
-                                clock_timestamp(), b.txs, b.voters);
+                                clock_timestamp(), b.txs, b.voters)
+     on conflict do nothing;
  
 end;
 $code$
-language plpgsql;
+language plpgsql
+set enable_seqscan to off;

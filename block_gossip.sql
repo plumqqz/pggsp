@@ -35,12 +35,17 @@ declare
         perform dblink_exec(get_connection_name(r.cn),'commit');
       else
         perform dblink_exec(get_connection_name(r.cn),'rollback');
-        raise sqlstate 'XY004' using message='Remote:' || error, hint=sqlst;
+        if error ~ '(?:i)deadlock' then
+            raise sqlstate '40P01' using message='Remote deadlock';
+        else 
+            raise sqlstate 'XY004' using message='Remote:' || error, hint=sqlst;
+        end if;
       end if;
      end loop;
  end
 $code$
-language plpgsql;
+language plpgsql
+set enable_seqscan to off;
 
 create or replace function GSP.block_gossip() returns void as
 $code$

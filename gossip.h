@@ -22,7 +22,7 @@
 #define get_connection_name(connection_string) ('cn'||md5(connection_string))
 
 #define CREATE_DBLINK(connection_string)\
-   if get_connection_name(connection_string)!=all(coalesce(dblink_get_connections(),array[]::text[])) then\
+   if not get_connection_name(connection_string)=any(coalesce(dblink_get_connections(),array[]::text[])) then\
      perform dblink_connect(get_connection_name(connection_string), connection_string || ' application_name=' || trim($s$ BCW $s$) || '.send_mempool_to_peer');\
    end if
 

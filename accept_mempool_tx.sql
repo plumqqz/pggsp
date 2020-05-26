@@ -20,6 +20,10 @@ $code$
     if vtx.added_at is null then
        vtx.added_at = clock_timestamp();
     end if;
+    
+    if exists(select * from GSP.blockchain bc where array[vtx.hash] && GSP.get_hash_array(bc.txs)) then
+       raise notice 'Tx % already in blockchain, skip it', decode(vtx.hash,'hex');
+    end if;
 
     if vtx.hash<>GSP.build_tx_hash(vtx) then
       raise notice 'passed hash=%', vtx.hash;
@@ -32,3 +36,4 @@ $code$
   end;
 $code$
 language plpgsql
+set enable_seqscan to off;

@@ -27,7 +27,7 @@ begin
     for i in coalesce(mh,-1)+1..p.height loop
         select dbl.res into reply from dblink(get_connection_name(p.cn), format('select %I.reply_blockchain_block(%L)',p.schema_name,i)) as dbl(res json);
         bb:=json_populate_record(null::GSP.blockchain, reply);
-        perform GSP.accept_proposed_block(reply);
+        --perform GSP.accept_proposed_block(reply);
         perform GSP.append_proposed_block_to_blockchain(decode(substring(reply->>'hash' from 3), 'hex'));
     end loop;
 end;

@@ -22,6 +22,14 @@ if b.height is null then
    raise notice '%', format('There is not enough votes for proposed block %s', b.voters);
    return;
  end if;
+
+ if b.height>0 and 
+   not exists(select * from GSP.blockchain bc where bc.hash=b.prev_hash and bc.height=b.height-1)
+ then
+    raise notice 'Block has no predcessor';
+    return;
+ end if;
+ 
  
  if exists(select * 
              from unnest(b.txs) t 

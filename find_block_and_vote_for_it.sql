@@ -45,6 +45,7 @@ begin
               and p.height=mh+1
              group by 1,2
              having sum(v.votes_cnt) >= total_votes_cnt*0.6600
+             order by 1
   loop
   -- если вдруг у нас окажется два блока одинаковой высоты с 
   -- достаточным числом голосов,то это фатальная ошибка и быть

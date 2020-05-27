@@ -30,9 +30,10 @@ begin
   -- блок и проголосует за него, то голосование может остановиться
   if (select sum(v.votes_cnt)*1.0000/total_votes_cnt
               from GSP.proposed_block p
-                   join GSP.voter v on p.miner_public_key=v.public_key)<0.6 then
+                   join GSP.voter v on p.miner_public_key=v.public_key
+                   where p.height=mh+1)<0.6 then
      -- мало блоков от майнеров, надо ждать еще кандидатов
-     raise notice 'Too low voter nodes send next tx candidates';
+     -- raise notice 'Too low voter nodes send next tx candidates';
      return;
    end if;
   
@@ -44,7 +45,7 @@ begin
               where ecdsa_verify_raw(v.public_key, p.hash, vt.signature, CURVE)
               and p.height=mh+1
              group by 1,2
-             having sum(v.votes_cnt) >= total_votes_cnt*0.6600
+             having sum(v.votes_cnt) >= total_votes_cnt*0.6000
              order by 1
   loop
   -- если вдруг у нас окажется два блока одинаковой высоты с 

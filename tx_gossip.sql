@@ -36,6 +36,8 @@ declare
         perform dblink_exec(get_connection_name(r.cn),'rollback');
         if error ~* 'deadlock' then
             raise sqlstate '40P01' using message='Remote deadlock';
+        elsif error ~* 'current transaction is aborted' then
+            raise sqlstate '57014' using message='Remote timeout';
         else 
             raise sqlstate 'XY004' using message='Remote:' || error, hint=sqlst;
         end if;

@@ -9,12 +9,13 @@ declare
      if not exists(select * 
                      from jb.job j 
                     where j.function_name=GSPSTR||'.block_gossip_job' 
+                      and params->>'ref'=r.ref                    
                       and not j.is_done and not j.is_failed) 
      then
-       perform jb.submit(GSPSTR||'.block_gossip_job', jsonb_build_object('ref', r.ref));
+       perform jb.submit(GSPSTR||'.block_gossip_job', jsonb_build_object('ref', r.ref, 'src', GSPSTR));
      end if;
    end loop;
-   perform jb.set_next_run_after(jid, make_interval(secs:=7));
+   perform jb.set_next_run_after(jid, make_interval(secs:=10));
  end;
 $code$
 language plpgsql;
@@ -24,8 +25,12 @@ $code$
    begin
       perform GSP.block_gossip_one((select params->>'ref' from jb.job j where id=jid));
    exception
-    when sqlstate '08000' then perform jb.set_next_run_after(jid, make_interval(secs:=30));
-    when sqlstate '40P01' then perform jb.set_next_run_after(jid, make_interval(secs:=5));    
+    when sqlstate '08000' then perform jb.set_next_run_after(jid, make_interval(secs:=30)); -- client errpr
+    when sqlstate '40P01' then perform jb.set_next_run_after(jid, make_interval(secs:=5)); -- deadlock
+    when sqlstate '57014' then 
+        perform jb.set_next_run_after(jid, make_interval(secs:=5)); -- statement timeout
+        raise notice 'Statement timeout';
 end;
 $code$
-language plpgsql;
+language plpgsql
+set statement_timeout to 10000;

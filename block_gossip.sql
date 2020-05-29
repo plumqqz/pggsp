@@ -13,7 +13,6 @@ declare
      for r in select * from GSP.peer where peer.ref=peer_ref loop
       CREATE_DBLINK(r.cn);
       begin
-      perform dblink_exec(get_connection_name(r.cn),'begin');
           ok=false;
           for rd in select * from GSP.proposed_block pbs where not r.ref=any(pbs.seenby) loop
                select dbl.res into res from dblink(get_connection_name(r.cn), format('select %I.accept_proposed_block(%L)',r.schema_name, to_json(rd))) as dbl(res text);
@@ -29,18 +28,17 @@ declare
             ok=false;
             error=sqlerrm;
             sqlst = sqlstate;
-            raise notice 'Handle error:% %', sqlst, error;
+            raise notice '%', format(GSPSTR||':block_gossip:Handle error:%s %s', sqlst, error);
       end;
-      if ok then
-        perform dblink_exec(get_connection_name(r.cn),'commit');
-      else
-        perform dblink_exec(get_connection_name(r.cn),'rollback');
+      if not ok then
         if error ~* 'deadlock' then
-            raise sqlstate '40P01' using message='Remote deadlock';
-        elsif error ~* 'current transaction is aborted' then
-            raise sqlstate '57014' using message='Remote timeout';
+            raise sqlstate '40P01' using message=GSPSTR||':block_gossip:Remote deadlock';
+        elsif error ~* 'current transaction is aborted'
+              or error ~* 'statement timeout'
+        then
+            raise sqlstate '57014' using message=GSPSTR||':block_gossip:Remote timeout';
         else
-            raise sqlstate 'XY004' using message='Remote:' || error, hint=sqlst;
+            raise sqlstate 'XY004' using message=GSPSTR||':block_gossip:Remote:' || error, hint=sqlst;
         end if;
       end if;
      end loop;

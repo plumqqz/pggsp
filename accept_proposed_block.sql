@@ -7,15 +7,13 @@ $code$
     r record;
   begin
     assert jpb is not null, 'Passed block json is null';
-    perform pg_advisory_xact_lock(1000000000000+pb.height);
-    lock table GSP.proposed_block in exclusive mode;
 
     if not GSP.is_valid_proposed_block_signature(pb) then
        raise sqlstate 'XY006' using message='Invalid signature';
     end if;
     for r in select * from unnest(pb.txs) as u loop
         if exists(select * from GSP.blockchain bc where array[r.hash] && GSP.get_hash_array(bc.txs)) then
-            raise notice 'Proposed tx has txs are already in blockchain';
+            raise notice '%:accept_proposed_block:Proposed tx has txs are already in blockchain', GSPSTR;
             return 'OK';           
         end if;
         if not ecdsa_verify_raw(r.sender_public_key, r.hash, r.signature, CURVE) then

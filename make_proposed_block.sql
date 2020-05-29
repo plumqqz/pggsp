@@ -21,7 +21,7 @@ begin
           where not exists(select * from GSP.blockchain b where array[mempool_txs.hash] && GSP.get_hash_array(b.txs))
    order by added_at, sender_public_key limit 1000) mp;
   if pb.txs is null or array_length(pb.txs,1)=0 then -- no tx found
-     raise notice 'No tx found';
+     -- raise notice 'No tx found';
      return;
   end if;
 

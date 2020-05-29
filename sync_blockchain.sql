@@ -29,7 +29,6 @@ begin
     begin
         ok=false;
         CREATE_DBLINK(p.cn);
-        perform dblink_exec(get_connection_name(p.cn),'begin transaction');
         for i in coalesce(mh,-1)+1..p.height loop
             select dbl.res into reply from dblink(get_connection_name(p.cn), format('select %I.reply_blockchain_block(%L)',p.schema_name,i)) as dbl(res json);
             bb:=json_populate_record(null::GSP.blockchain, reply);
@@ -44,16 +43,15 @@ begin
             sqlst = sqlstate;
             raise notice 'Handle error:% %', sqlst, error;
       end;
-      if ok then
-        perform dblink_exec(get_connection_name(p.cn),'commit');
-      else
-        perform dblink_exec(get_connection_name(p.cn),'rollback');
+      if not ok then
         if error ~* 'deadlock' then
-            raise sqlstate '40P01' using message='Remote deadlock';
-        elsif error ~* 'current transaction is aborted' then
-            raise sqlstate '57014' using message='Remote timeout';
+            raise sqlstate '40P01' using message='sync_blockchain:Remote deadlock';
+        elsif error ~* 'current transaction is aborted' 
+              or error ~* 'statement timeout'
+        then
+            raise sqlstate '57014' using message='sync_blockchain:Remote timeout';
         else 
-            raise sqlstate 'XY004' using message='Remote:' || error, hint=sqlst;
+            raise sqlstate 'XY004' using message='sync_blockchain:Remote:' || error, hint=sqlst;
         end if;
       end if;   
     

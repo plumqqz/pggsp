@@ -11,7 +11,6 @@ declare
  begin
    begin
       CREATE_DBLINK(p.cn);
-      perform dblink_exec(get_connection_name(p.cn),'begin transaction');
       ok=false;
       select dbl.res into hh from dblink(get_connection_name(p.cn), format('select %I.reply_blockchain_height()',p.schema_name)) as dbl(res bigint);
       update GSP.peer set height=hh, last_accessed_at=clock_timestamp() where peer.ref=ask_peer_height.ref;
@@ -23,10 +22,7 @@ declare
             sqlst = sqlstate;
             raise notice 'Handle error:% %', sqlst, error;
       end;
-      if ok then
-        perform dblink_exec(get_connection_name(p.cn),'commit');
-      else
-        perform dblink_exec(get_connection_name(p.cn),'rollback');
+      if not ok then
         if error ~* 'deadlock' then
             raise sqlstate '40P01' using message='Remote deadlock';
         elsif error ~* 'current transaction is aborted' then

@@ -12,7 +12,7 @@ if b.height is null then
    return;
  end if;
 
- perform pg_advisory_xact_lock(b.height);
+ --perform pg_advisory_xact_lock(b.height);
 
  if not GSP.is_valid_proposed_block_signature(b) then
    raise sqlstate 'XY006' using message=format('Cannot validate proposed block with hash=%s', bh::text);
@@ -42,7 +42,7 @@ if b.height is null then
  end if;
 
  
- delete from GSP.mempool_txs where hash in(select hash from unnest(b.txs) t);
+ delete from GSP.mempool_txs txs using (select hash from unnest(b.txs) t) t where txs.hash=t.hash;
  delete from GSP.proposed_block where height<=b.height;
  
  insert into GSP.blockchain(height, hash, prev_hash,

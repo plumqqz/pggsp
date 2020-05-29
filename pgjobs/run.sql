@@ -19,6 +19,7 @@ begin
   	if not found then
   	    commit;
   	    perform pg_sleep(1);
+        continue;
   	end if;
   	begin
   	  execute format('select %s($1)', r.function_name) using r.id;

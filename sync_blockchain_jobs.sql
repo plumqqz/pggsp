@@ -16,7 +16,7 @@ $code$
         raise notice 'Statement timeout';
         return;
    end; 
-   perform jb.set_next_run_after(jid, make_interval(secs:=10));
+   perform jb.set_next_run_after(jid, make_interval(secs:=5));
 end;
 $code$
 language plpgsql;

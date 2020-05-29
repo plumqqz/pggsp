@@ -15,7 +15,7 @@ declare
        perform jb.submit(GSPSTR||'.block_gossip_job', jsonb_build_object('ref', r.ref, 'src', GSPSTR));
      end if;
    end loop;
-   perform jb.set_next_run_after(jid, make_interval(secs:=10));
+   perform jb.set_next_run_after(jid, make_interval(secs:=5));
  end;
 $code$
 language plpgsql;
@@ -29,7 +29,7 @@ $code$
     when sqlstate '40P01' then perform jb.set_next_run_after(jid, make_interval(secs:=5)); -- deadlock
     when sqlstate '57014' then 
         perform jb.set_next_run_after(jid, make_interval(secs:=5)); -- statement timeout
-        raise notice 'Statement timeout';
+        raise notice 'block_gossip_job:Statement timeout';
 end;
 $code$
 language plpgsql

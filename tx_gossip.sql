@@ -15,7 +15,7 @@ declare
       begin
       perform dblink_exec(get_connection_name(r.cn),'begin');
       ok=false;
-      for rd in select * from GSP.mempool_txs txs where not r.ref =any(txs.seenby) loop
+      for rd in select * from GSP.mempool_txs txs where not r.ref =any(txs.seenby) limit 100 for update skip locked loop
            select dbl.res into res from dblink(get_connection_name(r.cn), format('select %I.accept_mempool_tx(%L)',r.schema_name, to_json(rd))) as dbl(res text);
            if res<>'OK' then
               raise notice '%', format('Cannot send to %s:%s', r.ref, res);  
@@ -34,12 +34,13 @@ declare
         perform dblink_exec(get_connection_name(r.cn),'commit');
       else
         perform dblink_exec(get_connection_name(r.cn),'rollback');
+        raise notice 'Rollback';
         if error ~* 'deadlock' then
-            raise sqlstate '40P01' using message='Remote deadlock';
+            raise sqlstate '40P01' using message=GSPSTR||':tx_gossip:Remote deadlock';
         elsif error ~* 'current transaction is aborted' then
-            raise sqlstate '57014' using message='Remote timeout';
+            raise sqlstate '57014' using message=GSPSTR||':tx_gossip:Remote timeout';
         else 
-            raise sqlstate 'XY004' using message='Remote:' || error, hint=sqlst;
+            raise sqlstate 'XY004' using message=GSPSTR||':tx_gossip:Remote:' || error, hint=sqlst;
         end if;
       end if;
      end loop;

@@ -15,7 +15,7 @@ declare
        perform jb.submit(GSPSTR||'.ask_peer_job', jsonb_build_object('ref', r.ref, 'src', GSPSTR));
      end if;
    end loop;
-   perform jb.set_next_run_after(jid, make_interval(secs:=5));
+   perform jb.set_next_run_after(jid, make_interval(secs:=7));
  end;
 $code$
 language plpgsql;

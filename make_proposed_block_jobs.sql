@@ -5,7 +5,7 @@ $code$
 begin
    begin
        perform GSP.make_proposed_block();
-       perform jb.set_next_run_after(jid, make_interval(secs:=10));
+       perform jb.set_next_run_after(jid, make_interval(secs:=5));
    exception
     when sqlstate '57014' then perform jb.set_next_run_after(jid, make_interval(secs:=5)); -- statement timeout
        perform jb.set_next_run_after(jid, make_interval(secs:=8));

@@ -53,6 +53,7 @@ begin
   -- такого не может, так что тут все свалится
      perform GSP.append_proposed_block_to_blockchain(r.hash);
      voted_block_found=true;
+     exit;
   end loop;  
 
   if voted_block_found then

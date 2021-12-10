@@ -24,6 +24,7 @@ declare
           end loop;
           ok=true;
       exception
+        when sqlstate '08000' then raise;
         when others then 
             ok=false;
             error=sqlerrm;

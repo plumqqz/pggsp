@@ -12,7 +12,11 @@ declare
  signature bytea;
  total_votes_cnt bigint;
 begin
-
+    
+  if not GSP.is_node_ready() then
+     return;
+  end if;
+  
   select bc.height, bc.added_at into mh, mts from GSP.blockchain bc order by bc.height desc limit 1;
   if not found then
       raise sqlstate 'XY014' using message='Blockchain is empty';

@@ -6,6 +6,10 @@ declare
  pb GSP.proposed_block;
  hashes bytea[];
 begin
+ if not GSP.is_node_ready() then
+    return;
+ end if;
+
  perform GSP.find_block_and_vote_for_it();
  if exists(select * 
              from GSP.proposed_block ppb 

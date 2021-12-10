@@ -16,6 +16,7 @@ begin
     if GSP.is_node_ready() then
         return;
     end if;
+    
     select max(height) into mh from GSP.blockchain;
     select * into p from GSP.peer order by height desc nulls last limit 1;
     if not found then

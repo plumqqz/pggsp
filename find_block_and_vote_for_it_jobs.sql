@@ -6,6 +6,7 @@ $code$
    begin
         perform GSP.find_block_and_vote_for_it();
    exception
+        when sqlstate '40P01' then perform jb.set_next_run_after(jid, make_interval(secs:=5));
         when sqlstate '57014' then 
            perform jb.set_next_run_after(jid, make_interval(secs:=5)); -- statement timeout
            raise notice 'Statement timeout';

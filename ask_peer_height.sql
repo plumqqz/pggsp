@@ -16,6 +16,7 @@ declare
       update GSP.peer set height=hh, last_accessed_at=clock_timestamp() where peer.ref=ask_peer_height.ref;
       ok=true;
       exception
+        when sqlstate '08000' then raise;
         when others then 
             ok=false;
             error=sqlerrm;

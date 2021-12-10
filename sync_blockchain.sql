@@ -12,13 +12,26 @@ declare
   ok boolean;
   error text;
   sqlst text;
+  pr record;
 begin
     if GSP.is_node_ready() then
         return;
     end if;
     
     select max(height) into mh from GSP.blockchain;
-    select * into p from GSP.peer order by height desc nulls last limit 1;
+    --select * into p from GSP.peer order by height desc nulls last limit 1;
+    -- find first live peer
+    for pr in select * from GSP.peer order by height desc nulls last limit 20 loop
+      begin
+        CREATE_DBLINK(pr.cn);
+        perform dblink(get_connection_name(p.cn),'select 1');
+        p=pr;
+        exit;
+      exception
+       when sqlstate '08000' then continue;
+      end; 
+    end loop;
+    
     if not found then
       raise sqlstate 'XY011' using message='No peers found';
     end if;
@@ -34,10 +47,12 @@ begin
             select dbl.res into reply from dblink(get_connection_name(p.cn), format('select %I.reply_blockchain_block(%L)',p.schema_name,i)) as dbl(res json);
             bb:=json_populate_record(null::GSP.blockchain, reply);
             perform GSP.accept_proposed_block(reply);
-            perform GSP.append_proposed_block_to_blockchain(decode(substring(reply->>'hash' from 3), 'hex'));
+            -- note stripping 0x for bytea value in json below
+            perform GSP.append_proposed_block_to_blockchain(decode(substring(reply->>'hash' from 3), 'hex')); 
         end loop;
         ok=true;
     exception
+        when sqlstate '08000' then raise;
         when others then 
             ok=false;
             error=sqlerrm;
